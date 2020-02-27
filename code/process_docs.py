@@ -4,10 +4,25 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 
-from example_doc import EXAMPLE_DOC
+#from example_doc import EXAMPLE_DOC
 
 
 MONTHS = ['19'+str(m).zfill(2) for m in range(1,13)]
+
+
+
+
+client = MongoClient()
+db = client.arXiv
+
+c1901 = db['1901']
+c1902 = db['1902']
+c1903 = db['1903']
+c1904 = db['1904']
+c1905 = db['1905']
+c1906 = db['1906']
+
+
 
 
 
