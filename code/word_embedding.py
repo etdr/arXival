@@ -8,60 +8,14 @@ import re
 from string import ascii_letters, ascii_lowercase, ascii_uppercase
 import characters as chars
 
+from get_docs import *
+from wordlist import words
 
 if tf.config.experimental.list_physical_devices('GPU'):
     tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
 
 
-TOKENS = ['__INTEGER__', '__DECIMAL__', '__MATH__' '__STOP__',
-    '__PERIOD__', '__QMARK__', '__EPOINT__', '__COMMA__'
-]
-
-WINDOW_SIZE = 3
-
-integer_re = re.compile('\d+')
-decimal_re = re.compile('\d*.\d+')
-newline_re = re.compile('\n')
-
-
-
-client = MongoClient()
-db = client.arXiv
-
-# import list of English words into set
-words = set()
-with open('/home/winfield/d/arXival/words.txt','rt') as f:
-    for l in f.readlines():
-        words.add(newline_re.sub('',l).lower())
-
-
-
-def get_docs(month, field='text'):
-    return [d[field] for d in db[month].find({})]
-
-
-# to implement
-def validate_word(w, doc, req_freq=5):
-    # first letter capitalized and in words
-    if w[0].lower()+w[1:] in words: return True
-    # all uppercase letters or periods
-    if all(c in ascii_uppercase+'.' for c in w): return True
-    # actually... given previous statement this is redundant (remove previous?)
-    if all(c in ascii_uppercase for c in w) and w.lower() in words: return True
-    # hyphenated and all components are words
-    if all(subw in words for subw in w.split('-')): return True
-    # if word appears more than req_freq times in the document
-    if doc.count(w) >= req_freq: return True
-    # if the word is a token (currently not used)
-    if w in TOKENS: return True
-    return False
-
-
-def preprocess_docs(docs):
-    #docs = [digits_re.sub('', dt) for dt in docs]
-    docs = [newline_re.sub(' ', dt) for dt in docs]
-    docs_filtered = [' '.join(w for w in d.split() if w in words or validate_word(w, d)) for d in docs] 
-    return docs_filtered
+WINDOW_SIZE = 2
 
 
 
@@ -118,14 +72,18 @@ def get_vocab_encoder(vocab_set):
 
 def get_keras_tokenizer(docs, num_words=100000, filters=''):
     tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=num_words, filters='')
+    tokenizer.fit_on_texts(docs)
     return tokenizer
 
 def get_vocab_set_v2(tokenizer, num_words=100000):
     vocab_set = set()
-    for k, v in tokenizer.word_index:
+    for k, v in tokenizer.word_index.items():
         if v <= num_words - 1:
             vocab_set.add(k)
     return vocab_set
+
+def get_docs_split(docs):
+    return [d.split() for d in docs]
 
 def filter_docs_using_tokenizer(docs_split, vocab_set):
     return [list(filter(lambda w: w in vocab_set, doc)) for doc in docs_split]
@@ -156,8 +114,9 @@ def get_training_generator(docs_split, encoder, window_size=WINDOW_SIZE, buffer_
     return gen
 
 
-def get_training_generator_v2(docs_split, tokenizer, n_samples=2000000, num_words=100000, window_size=WINDOW_SIZE):
+def get_training_generator_v2(docs_split, tokenizer, n_samples=2000000, window_size=WINDOW_SIZE):
     lds = len(docs_split)
+    num_words = tokenizer.num_words
     def gen():
         i = 0
         while i < n_samples:
@@ -173,6 +132,23 @@ def get_training_generator_v2(docs_split, tokenizer, n_samples=2000000, num_word
             yield (input_vector, target_vector)
 
     return gen
+
+
+
+
+def build_nn(num_words, dimension, optimizer=tf.keras.optimizers.SGD(), loss=tf.keras.losses.CategoricalCrossentropy()):
+    nn = tf.keras.models.Sequential()
+    nn.add(tf.keras.layers.Embedding(num_words, dimension, input_length=1))
+    nn.add(tf.keras.layers.Flatten())
+    nn.add(tf.keras.layers.Dense(num_words, activation='softmax'))
+    nn.compile(optimizer=optimizer, loss=loss)
+    return nn
+
+
+def train_nn(nn, g):
+    return nn.fit(x=g)
+
+
 
 
 

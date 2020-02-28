@@ -6,22 +6,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from gensim import corpora, models, similarities, matutils
 import logging
 
+from get_docs import *
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-
-
-MONTHS = ['19'+str(y).zfill(2) for y in range(1,13)]
-
-client = MongoClient()
-db = client.arXiv
-
-
-def get_docs_by_month(month, field='text'):
-    return [d[field] for d in db[month].find({})]
-
-def get_docs(months=MONTHS, field='text'):
-    docs_by_month = [get_docs_by_month(m, field=field) for m in months]
-    return [d for m in docs_by_month for d in m]
-
 
 
 

@@ -2,25 +2,21 @@
 from pymongo import MongoClient
 import numpy as np
 import pandas as pd
+import re
 from collections import defaultdict
 
 #from example_doc import EXAMPLE_DOC
 
-
-MONTHS = ['19'+str(m).zfill(2) for m in range(1,13)]
-
+from get_docs import *
 
 
 
-client = MongoClient()
-db = client.arXiv
 
-c1901 = db['1901']
-c1902 = db['1902']
-c1903 = db['1903']
-c1904 = db['1904']
-c1905 = db['1905']
-c1906 = db['1906']
+TOKENS = ['__INTEGER__', '__DECIMAL__', '__MATH__' '__STOP__',
+    '__PERIOD__', '__QMARK__', '__EPOINT__', '__COMMA__'
+]
+
+
 
 
 
@@ -45,3 +41,43 @@ def count_and_combine_dds(db):
     for m in MONTHS:
         master = combine_dds([master, count_subjects(d for d in db[m])])
     return master
+
+
+
+
+
+integer_re = re.compile('\d+')
+decimal_re = re.compile('\d*.\d+')
+newline_re = re.compile('\n')
+
+
+
+
+
+
+# to implement
+def validate_word_v0(w, doc, req_freq=5):
+    # first letter capitalized and in words
+    if w[0].lower()+w[1:] in words: return True
+    # all uppercase letters or periods
+    if all(c in ascii_uppercase+'.' for c in w): return True
+    # actually... given previous statement this is redundant (remove previous?)
+    if all(c in ascii_uppercase for c in w) and w.lower() in words: return True
+    # hyphenated and all components are words
+    if all(subw in words for subw in w.split('-')): return True
+    # if word appears more than req_freq times in the document
+    if doc.count(w) >= req_freq: return True
+    # if the word is a token (currently not used)
+    if w in TOKENS: return True
+    return False
+
+
+def validate_word_v1(w, doc, req_freq=5):
+    pass    
+
+
+def preprocess_docs(docs):
+    #docs = [digits_re.sub('', dt) for dt in docs]
+    docs = [newline_re.sub(' ', dt) for dt in docs]
+    docs_filtered = [' '.join(w for w in d.split() if w in words or validate_word_v0(w, d)) for d in docs] 
+    return docs_filtered
