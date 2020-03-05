@@ -60,7 +60,8 @@ def get_vocab_set(dataset, num_words=100000):
     vocab_set = set()
     i = 0
     for text_t in dataset:
-        tokens = tokenizer.texts_to_sequences([text_t.numpy()])
+        #tokens = tokenizer.texts_to_sequences([text_t.numpy()])
+        tokens = tokenizer.tokenize(text_t.numpy())
         vocab_set.update(tokens)
         print('vocab size',len(vocab_set),'; finished document',i)
         i += 1
@@ -95,7 +96,7 @@ shifts = list(range(-WINDOW_SIZE, WINDOW_SIZE))
 shifts.remove(0)
 
 def get_training_generator(docs_split, encoder, window_size=WINDOW_SIZE, buffer_size=10000):
-    dataset_shuffled = dataset.shuffle(buffer_size=buffer_size)
+    #dataset_shuffled = dataset.shuffle(buffer_size=buffer_size)
     lds = len(docs_split)
     def gen():
         while True:

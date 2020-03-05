@@ -8,7 +8,8 @@ from collections import defaultdict
 #from example_doc import EXAMPLE_DOC
 
 from get_docs import *
-
+from wordlist import words
+from string import ascii_letters, ascii_lowercase, ascii_uppercase
 
 
 
