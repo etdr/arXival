@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from get_docs import get_docs_list_from_dict, get_docs_list_iter, get_docs_dict_iter
+from .get_docs import get_docs_list_from_dict, get_docs_list_iter, get_docs_dict_iter
 
 MONTHS = ['1901', '1902']
 
