@@ -66,3 +66,11 @@ def get_docs_list_iter(ddi, field='text', include_empty=False):
             yield d[field]
         else:
             continue
+
+
+
+def get_doc_str(aID, field='text'):
+    cname = aID.split('.')[0]
+    c = db[cname]
+
+    return c.find_one({'aID':aID})[field]
