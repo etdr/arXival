@@ -1,0 +1,22 @@
+
+div#nav-div {
+  display: flex;
+  justify-content: space-between;
+  background-color: black;
+  border-bottom: 6px solid maroon;
+}
+
+
+h1 {
+  margin: 2rem 3rem;
+  color: white;
+}
+
+
+ul {
+  li {
+    display: inline-block;
+    margin: 2rem;
+    color: white;
+  }
+}
