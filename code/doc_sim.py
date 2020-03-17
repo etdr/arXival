@@ -21,7 +21,9 @@ cossim = lambda x, y: dot(x, y) / (norm(x) * norm(y))
 
 
 
-def get_tfidf_vectorizer_and_fit(ddi, max_df=0.4, min_df=3, field='text_dtr'):
+def get_tfidf_vectorizer_and_fit(ddi:Iterator[dict]=None, max_df=0.4, min_df=3, field='text_dtr'):
+    if ddi is None:
+        ddi = get_docs_dict_iter(months=MONTHS)
     docs_list = get_docs_list_iter(ddi, field=field)
     v = TfidfVectorizer(max_df=max_df, min_df=min_df)
     v.fit(docs_list)
@@ -29,20 +31,27 @@ def get_tfidf_vectorizer_and_fit(ddi, max_df=0.4, min_df=3, field='text_dtr'):
 
 
 def save_vectorizer(v):
-    
+    with open('v.pickle', 'wb') as f:
+        pickle.dump(v, f)
     return
 
 def load_vectorizer():
+    with open('v.pickle', 'rb') as f:
+        v = pickle.load(f)
+    return v
 
-    return
 
+LOAD_VECTORIZER = True
+
+if LOAD_VECTORIZER:
+    v = load_vectorizer()
 
 
 def get_tfidf_array(dd, v):
     return v.transform()
 
 
-def cssim_rank(doc_str, v:TfidfVectorizer, ddi:Iterator[dict]=None, doc_str_from_corpus=True, n=10, field='text_dtr'):
+def cssim_rank(doc_str, v:TfidfVectorizer=v, ddi:Iterator[dict]=None, doc_str_from_corpus=True, n=10, field='text_dtr'):
     if ddi is None:
         ddi = get_docs_dict_iter(months=MONTHS)
     doc0_vec = v.transform([doc_str])
