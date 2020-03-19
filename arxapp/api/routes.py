@@ -22,4 +22,4 @@ def process_aid_ds():
     for dr in doc_results:
         dr['title'] = fi.fetch_title(dr['aID'])
 
-    return doc_results
+    return {'doc_results': doc_results}
